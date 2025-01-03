@@ -340,7 +340,10 @@ class CryptoDeFiYieldFarmingAgent:
         except Exception as e:
             st.error(f"Failed to fetch price for {crypto}: {e}")
             return None
-
+        
+    # Intially, I'll add some known strategies for BTC, ETH, SOL, and SUI that I myself have used and worked.
+    # Then, I'll add a section where users can share their strategies and we can analyze them and add them to the community strategies.
+    # The AI should learn from the community strategies and improve its recommendations over time.
     def get_recommendation(self, crypto, market_condition):
         """Generate DeFi and Yield Farming strategies using DeepSeek API."""
         if crypto == "BTC":
@@ -365,7 +368,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
-            
+
             Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
         elif crypto == "Ethereum":
