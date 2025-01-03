@@ -6,6 +6,7 @@ import requests
 from dotenv import load_dotenv
 import os
 from bs4 import BeautifulSoup
+import re
 # Load environment variables from .env
 load_dotenv()
 
@@ -17,7 +18,7 @@ class CryptoDeFiYieldFarmingAgent:
         self.community_file = "community/community_strategies.json"
         self.community_strategies = self.load_community_strategies()
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")  # Get API key from .env
-        self.deepseek_api_url = "https://api.deepseek.com"  # Example endpoint
+        self.deepseek_api_url = os.getenv("DEEPSEEK_API_URL")
 
     def load_community_strategies(self):
         """Load community strategies from a JSON file."""
@@ -29,15 +30,20 @@ class CryptoDeFiYieldFarmingAgent:
             if not os.path.exists(self.community_file):
                 # Create an empty file if it doesn't exist
                 with open(self.community_file, "w") as file:
-                    json.dump([], file)
-                return []
+                    json.dump([], file)  # Initialize with an empty list
+                return []  # Return an empty list
             
             # Load strategies from the file
             with open(self.community_file, "r") as file:
-                return json.load(file)
+                data = json.load(file)
+                if isinstance(data, list):  # Ensure the data is a list
+                    return data
+                else:
+                    st.error("Invalid data format in community strategies file. Expected a list.")
+                    return []  # Return an empty list if the data is invalid
         except Exception as e:
             st.error(f"Error loading community strategies: {e}")
-            return []
+            return []  # Return an empty list in case of any error
 
     def save_community_strategies(self):
         """Save community strategies to a JSON file."""
@@ -64,33 +70,32 @@ class CryptoDeFiYieldFarmingAgent:
             return None
 
     def get_altcoin_season_index(self):
-        """Fetch Altcoin Season Index from BlockchainCenter and determine season."""
+        """Fetch the Altcoin Season Index from the webpage."""
         try:
+            url = "https://www.blockchaincenter.net/en/altcoin-season-index/"
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
             }
-            response = requests.get(self.altcoin_season_url, headers=headers)
+            response = requests.get(url, headers=headers)
             response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Find the Altcoin Season Index value using its unique style attributes
-            index_div = soup.find('div', style="font-size:88px;  color:#345C99;position:relative;top:56px;left:calc(47% - 46px)")
-            if index_div:
-                index_value = int(index_div.text.strip())
-                # Determine season based on index value
-                if index_value > 75:
-                    season_message = "Altcoin Season"
-                else:
-                    season_message = "Bitcoin Season"
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            # Find the Altcoin Season Index text
+            index_text = soup.find("button", class_="nav-link timeselect active").text.strip()  # Update the selector
+            match = re.search(r"\((\d+)\)", index_text)
+            if match:
+                value = int(match.group(1))
+                season_message = "Altcoin Season" if value > 75 else "Bitcoin Season"
                 return {
-                    'value': index_value,
-                    'season': season_message
+                    "value": value,
+                    "season": season_message
                 }
             else:
-                print("Altcoin Season Index value not found on the page.")
+                st.warning("Altcoin Season Index value not found on the page.")
                 return None
         except Exception as e:
-            print(f"Error fetching Altcoin Season Index: {e}")
+            st.error(f"Error fetching Altcoin Season Index: {e}")
             return None
 
     def get_vix_index(self):
@@ -165,36 +170,52 @@ class CryptoDeFiYieldFarmingAgent:
             st.error("Please provide both a cryptocurrency and a strategy.")
             return
 
+        # Input validation: Check for malicious content
+        if any(char in strategy for char in ['<', '>', '&', '{', '}', ';', '(', ')', '`']):
+            st.error("Invalid characters detected in the strategy. Please avoid using special characters like <, >, &, etc.")
+            return
+
+        # Check for duplicates
+        for existing_strategy in self.community_strategies:
+            if (
+                existing_strategy["crypto"].lower() == crypto.lower()
+                and existing_strategy["strategy"].lower() == strategy.lower()
+                and existing_strategy["market_condition"].lower() == market_condition.lower()
+            ):
+                st.error("This strategy already exists in the community. Please provide a unique strategy.")
+                return
+
+        # Add the strategy to the community list
         self.community_strategies.append({
             "crypto": crypto,
             "strategy": strategy,
-            "market_condition": market_condition,  # Automatically use the current market condition
+            "market_condition": market_condition,
             "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
+
+        # Save the updated strategies to the JSON file
         self.save_community_strategies()
         st.success("Your strategy has been shared with the community!")
 
     def analyze_market(self):
         """Analyze combined market sentiment."""
-        crypto_data = self.get_fear_and_greed_index()
-        vix_data = self.get_vix_index()
-        altcoin_season_data = self.get_altcoin_season_index()
-        
-        if not crypto_data or not vix_data or not altcoin_season_data:
-            return "Unable to fetch market data"
-        
-        # Map Fear & Greed Index to bullish/bearish
-        if crypto_data['value'] >= 55:
-            market_condition = "bullish"
-        else:
-            market_condition = "bearish"
-        
-        return {
-            'crypto': crypto_data,
-            'altcoin_season': altcoin_season_data,
-            'market_condition': market_condition,
-            'vix_data': vix_data
-        }
+        try:
+            crypto_data = self.get_fear_and_greed_index()
+            vix_data = self.get_vix_index()
+            altcoin_season_data = self.get_altcoin_season_index()
+
+            if not crypto_data or not vix_data:
+                return {"error": "Failed to fetch market data"}
+
+            market_condition = "bullish" if crypto_data['value'] >= 55 else "bearish"
+            return {
+                'market_condition': market_condition,
+                'crypto': crypto_data,
+                'vix_data': vix_data,
+                'altcoin_season': altcoin_season_data
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
     def get_crypto_price(self, crypto):
         """Fetch the current price of a cryptocurrency using CoinGecko API."""
@@ -205,11 +226,100 @@ class CryptoDeFiYieldFarmingAgent:
                 "Ethereum": "ethereum",
                 "Solana": "solana",
                 "Sui": "sui",
-                # Add more mappings as needed
+                "BNB": "binancecoin",
+                "XRP": "ripple",
+                "Cardano": "cardano",
+                "Dogecoin": "dogecoin",
+                "Avalanche": "avalanche-2",
+                "Polkadot": "polkadot",
+                "Polygon": "matic-network",
+                "Litecoin": "litecoin",
+                "Chainlink": "chainlink",
+                "Uniswap": "uniswap",
+                "Tron": "tron",
+                "Atom": "cosmos",
+                "Monero": "monero",
+                "Ethereum Classic": "ethereum-classic",
+                "Stellar": "stellar",
+                "Algorand": "algorand",
+                "Filecoin": "filecoin",
+                "Tezos": "tezos",
+                "Aave": "aave",
+                "Compound": "compound-governance-token",
+                "Shiba Inu": "shiba-inu",
+                "NEAR Protocol": "near",
+                "Fantom": "fantom",
+                "Optimism": "optimism",
+                "Arbitrum": "arbitrum",
+                "Aptos": "aptos",
+                "Mina": "mina-protocol",
+                "Flow": "flow",
+                "Hedera": "hedera-hashgraph",
+                "Klaytn": "klay-token",
+                "Zilliqa": "zilliqa",
+                "Theta": "theta-token",
+                "Axie Infinity": "axie-infinity",
+                "Decentraland": "decentraland",
+                "The Sandbox": "the-sandbox",
+                "Gala": "gala",
+                "Enjin Coin": "enjincoin",
+                "Chiliz": "chiliz",
+                "Immutable X": "immutable-x",
+                "Loopring": "loopring",
+                "Harmony": "harmony",
+                "Kusama": "kusama",
+                "Elrond": "elrond-erd-2",
+                "Celo": "celo",
+                "Cosmos": "cosmos",
+                "UMA": "uma",
+                "Band Protocol": "band-protocol",
+                "API3": "api3",
+                "DIA": "dia-data",
+                "Tellor": "tellor",
+                "NMR": "numeraire",
+                "Ocean Protocol": "ocean-protocol",
+                "Fetch.ai": "fetch-ai",
+                "SingularityNET": "singularitynet",
+                "Numeraire": "numeraire",
+                "Bancor": "bancor",
+                "Balancer": "balancer",
+                "Curve DAO Token": "curve-dao-token",
+                "SushiSwap": "sushi",
+                "1inch": "1inch",
+                "Yearn.finance": "yearn-finance",
+                "Maker": "maker",
+                "Compound": "compound-governance-token",
+                "Synthetix": "synthetix-network-token",
+                "Ren": "ren",
+                "Reserve Rights": "reserve-rights-token",
+                "UMA": "uma",
+                "Band Protocol": "band-protocol",
+                "API3": "api3",
+                "DIA": "dia-data",
+                "Tellor": "tellor",
+                "NMR": "numeraire",
+                "Ocean Protocol": "ocean-protocol",
+                "Fetch.ai": "fetch-ai",
+                "SingularityNET": "singularitynet",
+                "Numeraire": "numeraire",
+                "Bancor": "bancor",
+                "Balancer": "balancer",
+                "Curve DAO Token": "curve-dao-token",
+                "SushiSwap": "sushi",
+                "1inch": "1inch",
+                "Yearn.finance": "yearn-finance",
+                "Maker": "maker",
+                "Compound": "compound-governance-token",
+                "Synthetix": "synthetix-network-token",
+                "Ren": "ren",
+                "Reserve Rights": "reserve-rights-token"
             }
 
-            # Get the CoinGecko ID for the crypto
-            crypto_id = crypto_map.get(crypto, crypto.lower())
+            # Convert crypto_map keys to lowercase for case-insensitive matching
+            crypto_map_lower = {k.lower(): v for k, v in crypto_map.items()}
+
+            # Get the CoinGecko ID for the crypto (case-insensitive)
+            crypto_id = crypto_map_lower.get(crypto.lower(), crypto.lower())
 
             # Fetch price from CoinGecko API
             url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_id}&vs_currencies=usd"
@@ -229,20 +339,20 @@ class CryptoDeFiYieldFarmingAgent:
 
     def get_recommendation(self, crypto, market_condition):
         """Generate DeFi and Yield Farming strategies using DeepSeek API."""
-        if crypto in ["BTC", "Ethereum", "Solana", "Sui"]:
+        if crypto == "BTC":
             prompt = f"""
-            Provide a {market_condition} DeFi/Yield Farming strategy for {crypto}. 
-            Focus only on {crypto} and provide multiple strategies tailored to it.
+            Provide a {market_condition} DeFi/Yield Farming strategy for BTC. 
+            Focus only on BTC and provide multiple strategies tailored to it.
             Do not include strategies for other cryptocurrencies or for market conditions other than {market_condition}.
 
-            If {crypto} is BTC and the market condition is bullish, include the following strategy on the Base network:
+            If the market condition is bullish, include the following strategy on the Base network:
             1. Wrap BTC to cbBTC (Coinbase BTC) on Base.
             2. Lend cbBTC on Aave (Base network) and use it as collateral.
             3. Borrow a stable asset like USDC against this collateral on Aave (Base network).
             4. Take the borrowed USDC and provide liquidity in a high APY pool like USDC/ETH concentrated pool in Aerodrome on Base L2.
             5. The interest earned should cover the borrowed APR, and you also get the advantage of BTC's price appreciation in a bull market.
 
-            If {crypto} is BTC and the market condition is bearish, include the following strategy:
+            If the market condition is bearish, include the following strategy:
             1. Convert BTC to USDC.
             2. Lend USDC on Aave and use it as collateral.
             3. Borrow a depreciating asset like BTC or ETH against this collateral on Aave.
@@ -250,46 +360,70 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            If {crypto} is Ethereum and the market condition is bullish, include strategies such as:
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            """
+        elif crypto == "Ethereum":
+            prompt = f"""
+            Provide a {market_condition} DeFi/Yield Farming strategy for Ethereum. 
+            Focus only on Ethereum and provide multiple strategies tailored to it.
+            Do not include strategies for other cryptocurrencies or for market conditions other than {market_condition}.
+
+            If the market condition is bullish, include strategies such as:
             - Staking ETH in Lido or Rocket Pool for staking rewards.
             - Providing liquidity in Uniswap V3 or Curve pools.
             - Leveraging ETH in Aave or Compound for borrowing and yield farming.
 
-            If {crypto} is Ethereum and the market condition is bearish, include the following strategy:
+            If the market condition is bearish, include the following strategy:
             1. Convert ETH to USDC.
             2. Lend USDC on Aave and use it as collateral.
-            3. Borrow a depreciating asset like ETH or BTC against this collateral on Aave.
-            4. Convert the borrowed ETH/BTC back to USDC.
+            3. Borrow a depreciating asset like ETH against this collateral on Aave.
+            4. Convert the borrowed ETH back to USDC.
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            If {crypto} is Solana and the market condition is bullish, include strategies such as:
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            """
+        elif crypto == "Solana":
+            prompt = f"""
+            Provide a {market_condition} DeFi/Yield Farming strategy for Solana. 
+            Focus only on Solana and provide multiple strategies tailored to it.
+            Do not include strategies for other cryptocurrencies or for market conditions other than {market_condition}.
+
+            If the market condition is bullish, include strategies such as:
             - Staking SOL in native validators or platforms like Marinade Finance.
             - Providing liquidity in Raydium or Orca pools.
             - Leveraging SOL in lending protocols like Solend.
 
-            If {crypto} is Solana and the market condition is bearish, include the following strategy:
+            If the market condition is bearish, include the following strategy:
             1. Convert SOL to USDC.
             2. Lend USDC on Aave or Solend and use it as collateral.
-            3. Borrow a depreciating asset like SOL or ETH against this collateral.
-            4. Convert the borrowed SOL/ETH back to USDC.
+            3. Borrow a depreciating asset like SOL against this collateral.
+            4. Convert the borrowed SOL back to USDC.
             5. Provide the USDC in liquidity pools on decentralized exchanges like Raydium or Orca for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            If {crypto} is Sui and the market condition is bullish, include strategies such as:
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            """
+        elif crypto == "Sui":
+            prompt = f"""
+            Provide a {market_condition} DeFi/Yield Farming strategy for Sui. 
+            Focus only on Sui and provide multiple strategies tailored to it.
+            Do not include strategies for other cryptocurrencies or for market conditions other than {market_condition}.
+
+            If the market condition is bullish, include strategies such as:
             - Staking SUI in native validators.
             - Providing liquidity in AlphaFi's stSUI-USDC pair, which is currently returning over 400% APR.
             - Leveraging SUI in lending protocols on Sui.
 
-            If {crypto} is Sui and the market condition is bearish, include the following strategy:
+            If the market condition is bearish, include the following strategy:
             1. Convert SUI to USDC.
             2. Lend USDC on Aave or Sui lending protocols and use it as collateral.
-            3. Borrow a depreciating asset like SUI or ETH against this collateral.
-            4. Convert the borrowed SUI/ETH back to USDC.
+            3. Borrow a depreciating asset like SUI against this collateral.
+            4. Convert the borrowed SUI back to USDC.
             5. Provide the USDC in liquidity pools on decentralized exchanges like AlphaFi for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise and actionable.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
         else:
             prompt = f"""
@@ -312,7 +446,7 @@ class CryptoDeFiYieldFarmingAgent:
             - Lending stablecoins and borrowing depreciating assets.
             - Providing liquidity in stablecoin pairs.
 
-            Be concise and actionable.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
         return self.call_deepseek_api(prompt)
 
@@ -322,7 +456,8 @@ class CryptoDeFiYieldFarmingAgent:
         return self.call_deepseek_api(prompt)
 
     def view_community_strategies(self, crypto, market_condition):
-        """Display community strategies filtered by crypto and market condition."""
+        print(f"Viewing community strategies for {crypto} ({market_condition})")
+        """Displaying community strategies filtered by crypto and market condition."""
         if not self.community_strategies:
             st.warning("No strategies have been shared yet.")
             return
@@ -337,7 +472,6 @@ class CryptoDeFiYieldFarmingAgent:
             st.warning(f"No {market_condition} strategies found for {crypto}.")
             return
 
-        st.subheader(f"Community {market_condition.capitalize()} Strategies for {crypto}")
         for i, strategy in enumerate(filtered_strategies, 1):
             st.write(f"### Strategy #{i}")
             st.write(f"**date_added:** {strategy['date_added']}")
@@ -346,15 +480,32 @@ class CryptoDeFiYieldFarmingAgent:
 
     def run(self):
         """Run the Crypto DeFi & Yield Farming Agent."""
-        st.title("Agent YieldDeFi")
+        # Create two columns for the header and image
+        col1, col2 = st.columns([1, 3])  # Adjust the ratio as needed
+
+        # Add the header in the first column
+        with col1:
+            st.image("img/agentyield.png", width=100)  # Adjust width as needed            
+
+        # Add the image in the second column
+        with col2:
+            st.title("Agent YieldDeFi")
+
         st.sidebar.header("Menu")
+
+        # App Summary
+        st.markdown("""
+        **Welcome!**  
+        I am an AI Agent that helps you analyze cryptocurrency markets, assess risks, and generate tailored recommendations for DeFi and yield farming strategies.  
+        Select a cryptocurrency, click **Analyze**, and get insights on market conditions, volatility, and more.
+        """)
 
         # Cryptocurrency Selection
         crypto = st.sidebar.selectbox(
             "Select a cryptocurrency",
-            ["BTC", "Ethereum", "Solana", "Sui", "Custom"]
+            ["BTC", "Ethereum", "Solana", "Sui", "Other"]
         )
-        if crypto == "Custom":
+        if crypto == "Other":
             crypto = st.sidebar.text_input("Enter the cryptocurrency you'd like to analyze:")
             if not crypto:
                 st.error("Please enter a valid cryptocurrency.")
@@ -384,7 +535,8 @@ class CryptoDeFiYieldFarmingAgent:
                 )
 
             # Analyze market and display recommendation
-            market_analysis = self.analyze_market()
+            market_analysis = self.analyze_market()          
+
             st.write(f"**Market Condition:** {market_analysis['market_condition']}")
 
             # Display VIX data
@@ -392,10 +544,17 @@ class CryptoDeFiYieldFarmingAgent:
             st.write(f"**VIX Index:** {vix_data['value']} ({vix_data['analysis']})")
             st.write(f"**Change:** {vix_data['change']} ({vix_data['change_percent']}%)")
 
+            # Display Altcoin Season Index data
+            altcoin_season_data = market_analysis['altcoin_season']
+            if altcoin_season_data['value'] is not None:
+                st.write(f"**Altcoin Season Index:** {altcoin_season_data['value']} ({altcoin_season_data['season']})")
+            else:
+                st.warning("Altcoin Season Index data is currently unavailable.")
+
             # Generate recommendation with progress bar
             progress_bar = st.progress(0)
             processing_message = st.empty()  # Use a placeholder for the processing message
-            processing_message.write("**Generating recommendations...**")  # Indicate processing
+            processing_message.write("**Just a moment, I'm processing recommendations for you...**")  # Indicate processing
             recommendation = None
 
             # Simulate progress while waiting for recommendation
@@ -412,7 +571,7 @@ class CryptoDeFiYieldFarmingAgent:
             update_progress(progress_bar, processing_message)
 
             # Display recommendation
-            st.write("**Recommendation:**")
+            st.write("**My Recommendation for what to do with your " + crypto + " in a " + market_analysis['market_condition'] + " market:**")
             st.markdown(recommendation.replace("\n", "  \n"))
 
             # Display risk score with red line and indicator
@@ -443,27 +602,32 @@ class CryptoDeFiYieldFarmingAgent:
                 """,
                 unsafe_allow_html=True
             )
-            risk_explanation = self.explain_risk_score(crypto, risk_score)
-            st.write(f"**Risk Explanation:** {risk_explanation}")
+
+            # Collapsible risk explanation
+            with st.expander("**Here's a breakdown of the factors contributing to this score:**"):
+                risk_explanation = self.explain_risk_score(crypto, risk_score)
+                st.write(risk_explanation)
 
             # Notifications
             if vix_data['value'] > 30:
                 st.warning("High Volatility Detected! Consider reducing risk exposure.")
 
-            # Post-recommendation options
-            st.subheader("Next Steps")
-            if st.button(f"View Community {market_analysis['market_condition'].capitalize()} Strategies for {crypto}"):
-                self.view_community_strategies(crypto, market_analysis['market_condition'])
+            # Automatically display top 5 community strategies
+            st.subheader("Top 5 " + market_analysis['market_condition'] + " Strategies for " + crypto + " from the community")
+            self.view_community_strategies(crypto, market_analysis['market_condition'])
 
-        # Share Your Strategy Section (only show if market_analysis exists)
-        if market_analysis:
-            st.subheader(f"Share Your {market_analysis['market_condition'].capitalize()} Strategy for {crypto}")
-            personal_strategy = st.text_area("Enter your personal strategy (Plain English):")
-            if st.button("Submit Strategy"):
-                if personal_strategy.strip():  # Ensure the strategy is not empty
-                    self.share_strategy(crypto, personal_strategy, market_analysis['market_condition'])  # Pass market condition
-                else:
-                    st.error("Please enter a valid strategy before submitting.")
+            # Add a section for sharing strategies
+            st.subheader("Share Your " + market_analysis['market_condition'] + " Strategy for - " + crypto)
+            with st.form("strategy_form"):
+                strategy = st.text_area(
+                    "Enter your strategy:",
+                    placeholder="In a " + market_analysis['market_condition'] + " market, stake your " + crypto + " tokens in native validators to earn staking rewards..."
+                )
+                if st.form_submit_button("Share Strategy"):
+                    if crypto and market_analysis and "market_condition" in market_analysis:
+                        self.share_strategy(crypto, strategy, market_analysis['market_condition'])
+                    else:
+                        st.error("Please analyze a cryptocurrency first to share a strategy.")
 
 if __name__ == "__main__":
     agent = CryptoDeFiYieldFarmingAgent()

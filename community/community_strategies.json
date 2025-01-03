@@ -1,1 +1,50 @@
-[{"crypto": "BTC", "strategy": "In a bullish market, consider wrapping BTC to wBTC and providing liquidity in a wBTC/ETH pool on Uniswap V3 for high APY returns.", "market_condition": "bullish", "date_added": "2023-10-01 14:30:00"}, {"crypto": "Ethereum", "strategy": "Stake ETH in Lido for staking rewards and use stETH as collateral on Aave to borrow stablecoins for additional yield farming.", "market_condition": "neutral", "date_added": "2023-10-02 09:15:00"}, {"crypto": "Solana", "strategy": "Provide liquidity in the SOL/USDC pool on Raydium for high APY returns, especially during periods of low volatility.", "market_condition": "bearish", "date_added": "2023-10-03 16:45:00"}, {"crypto": "BTC", "strategy": "In a bullish market, consider wrapping BTC to wBTC and providing liquidity in a wBTC/ETH pool on Uniswap V3 for high APY returns.", "market_condition": "bullish", "date_added": "2025-01-02 19:52:34"}]
+[
+    {
+        "crypto": "BTC",
+        "strategy": "In a bullish market, consider wrapping BTC to wBTC and providing liquidity in a wBTC/ETH pool on Uniswap V3 for high APY returns.",
+        "market_condition": "bullish",
+        "date_added": "2023-10-01 14:30:00"
+    },
+    {
+        "crypto": "Ethereum",
+        "strategy": "Stake ETH in Lido for staking rewards and use stETH as collateral on Aave to borrow stablecoins for additional yield farming.",
+        "market_condition": "neutral",
+        "date_added": "2023-10-02 09:15:00"
+    },
+    {
+        "crypto": "Solana",
+        "strategy": "Provide liquidity in the SOL/USDC pool on Raydium for high APY returns, especially during periods of low volatility.",
+        "market_condition": "bearish",
+        "date_added": "2023-10-03 16:45:00"
+    },
+    {
+        "crypto": "BTC",
+        "strategy": "In a bearish market, consider holding BTC in a cold wallet and using it as collateral to borrow stablecoins for short-term liquidity.",
+        "market_condition": "bearish",
+        "date_added": "2023-10-04 11:20:00"
+    },
+    {
+        "crypto": "Ethereum",
+        "strategy": "In a bullish market, stake ETH in Rocket Pool for decentralized staking rewards and participate in governance.",
+        "market_condition": "bullish",
+        "date_added": "2023-10-05 08:10:00"
+    },
+    {
+        "crypto": "Solana",
+        "strategy": "In a neutral market, consider yield farming with SOL in the Orca DEX by providing liquidity to SOL/USDT pools.",
+        "market_condition": "neutral",
+        "date_added": "2023-10-06 13:55:00"
+    },
+    {
+        "crypto": "BTC",
+        "strategy": "In a neutral market, consider using BTC to earn interest on platforms like Celsius or BlockFi.",
+        "market_condition": "neutral",
+        "date_added": "2023-10-07 17:30:00"
+    },
+    {
+        "crypto": "Ethereum",
+        "strategy": "In a bearish market, consider staking ETH in a decentralized staking pool like StakeWise to earn passive income.",
+        "market_condition": "bearish",
+        "date_added": "2023-10-08 10:05:00"
+    }
+]
