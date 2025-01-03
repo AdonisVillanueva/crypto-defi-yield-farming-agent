@@ -108,12 +108,16 @@ class CryptoDeFiYieldFarmingAgent:
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Extract VIX value
-            vix_value = float(soup.find('fin-streamer', {'data-field': 'regularMarketPrice'}).text)
+            # Extract VIX value and remove commas
+            vix_value_str = soup.find('fin-streamer', {'data-field': 'regularMarketPrice'}).text
+            vix_value = float(vix_value_str.replace(',', ''))  # Remove commas and convert to float
             
             # Extract change and percent change
-            change = float(soup.find('fin-streamer', {'data-field': 'regularMarketChange'}).text)
-            change_percent = float(soup.find('fin-streamer', {'data-field': 'regularMarketChangePercent'}).text.strip('()%'))
+            change_str = soup.find('fin-streamer', {'data-field': 'regularMarketChange'}).text
+            change = float(change_str.replace(',', ''))  # Remove commas and convert to float
+            
+            change_percent_str = soup.find('fin-streamer', {'data-field': 'regularMarketChangePercent'}).text.strip('()%')
+            change_percent = float(change_percent_str.replace(',', ''))  # Remove commas and convert to float
             
             return {
                 'value': vix_value,
