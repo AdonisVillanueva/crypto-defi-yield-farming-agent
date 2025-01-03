@@ -353,8 +353,9 @@ class CryptoDeFiYieldFarmingAgent:
             1. Wrap BTC to cbBTC (Coinbase BTC) on Base.
             2. Lend cbBTC on Aave (Base network) and use it as collateral.
             3. Borrow a stable asset like USDC against this collateral on Aave (Base network).
-            4. Take the borrowed USDC and provide liquidity in a high APY pool like USDC/ETH concentrated pool in Aerodrome on Base L2.
+            4. Take the borrowed USDC and provide liquidity in a high APY pool like USDC/ETH concentrated pool in Aerodrome on Base L2. Make sure you have a healthy LTV ratio.
             5. The interest earned should cover the borrowed APR, and you also get the advantage of BTC's price appreciation in a bull market.
+            6. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
 
             If the market condition is bearish, include the following strategy:
             1. Convert BTC to USDC.
@@ -363,7 +364,8 @@ class CryptoDeFiYieldFarmingAgent:
             4. Convert the borrowed BTC/ETH back to USDC.
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
-
+            7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            
             Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
         elif crypto == "Ethereum":
