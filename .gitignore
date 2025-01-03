@@ -1,3 +1,4 @@
 # Ignore environment files
 .env 
 .venv/
+.streamlit/secrets.toml
