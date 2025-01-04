@@ -11,6 +11,12 @@ import re
 load_dotenv()
 
 class CryptoDeFiYieldFarmingAgent:
+    #This is for the AI Model to evaluate the strategies
+    STRATEGY_EVALUATION_CRITERIA = """
+    Be concise, actionable, provide pros and cons, and a rating for each strategy. 
+    Include a link to a website or a YouTube video explaining the strategy. 
+    Do not include deep dives if it's irrelevant, not helpful, or missing content.
+    """
     def __init__(self):
         self.fear_greed_url = "https://api.alternative.me/fng/"
         self.vix_url = "https://finance.yahoo.com/quote/%5EVIX/"
@@ -20,6 +26,7 @@ class CryptoDeFiYieldFarmingAgent:
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")  # Get API key from .env
         self.deepseek_api_url = os.getenv("DEEPSEEK_API_URL")
         self.coinmarketcap_api_key = os.getenv("COINMARKETCAP_API_KEY")  # Get API key from .env
+
 
     def load_community_strategies(self):
         """Load community strategies from a JSON file."""
@@ -372,7 +379,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
+            {self.STRATEGY_EVALUATION_CRITERIA}
             """
         elif crypto == "Ethereum":
             prompt = f"""
@@ -400,7 +407,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
+            {self.STRATEGY_EVALUATION_CRITERIA}
             """
         elif crypto == "Solana":
             prompt = f"""
@@ -421,7 +428,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Raydium or Orca for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
+            {self.STRATEGY_EVALUATION_CRITERIA}
             """
         elif crypto == "Sui":
             prompt = f"""
@@ -442,7 +449,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like AlphaFi for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
+            {self.STRATEGY_EVALUATION_CRITERIA}
             """
         else:
             prompt = f"""
@@ -465,7 +472,7 @@ class CryptoDeFiYieldFarmingAgent:
             - Lending stablecoins and borrowing depreciating assets.
             - Providing liquidity in stablecoin pairs.
 
-            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
+            {self.STRATEGY_EVALUATION_CRITERIA}
             """
         return self.call_deepseek_api(prompt)
 
@@ -475,27 +482,74 @@ class CryptoDeFiYieldFarmingAgent:
         return self.call_deepseek_api(prompt)
 
     def view_community_strategies(self, crypto, market_condition):
-        print(f"Viewing community strategies for {crypto} ({market_condition})")
-        """Displaying community strategies filtered by crypto and market condition."""
+        """Display community strategies and handle the 'Share Your Strategy' form."""
+        # Ensure the community file exists
+        if not os.path.exists(self.community_file):
+            with open(self.community_file, "w") as file:
+                json.dump([], file)  # Initialize with an empty list
+
+        # Load existing strategies from the community file
+        try:
+            with open(self.community_file, "r") as file:
+                self.community_strategies = json.load(file)
+        except json.JSONDecodeError:
+            st.error(f"Error: The {self.community_file} file is corrupted. Starting with an empty list.")
+            self.community_strategies = []
+
+        # Display top 5 strategies
+        st.subheader(f"Top 5 {market_condition} Strategies for {crypto} from the community")
         if not self.community_strategies:
             st.warning("No strategies have been shared yet.")
-            return
+        else:
+            # Filter strategies for the current crypto and market condition
+            filtered_strategies = [
+                strategy for strategy in self.community_strategies
+                if strategy["crypto"].lower() == crypto.lower() and strategy["market_condition"] == market_condition
+            ]
 
-        # Filter strategies for the current crypto and market condition
-        filtered_strategies = [
-            strategy for strategy in self.community_strategies
-            if strategy["crypto"].lower() == crypto.lower() and strategy["market_condition"] == market_condition
-        ]
+            if not filtered_strategies:
+                st.warning(f"No {market_condition} strategies found for {crypto}.")
+            else:
+                # Sort strategies by date (newest first) and take the top 5
+                filtered_strategies.sort(key=lambda x: x["date_added"], reverse=True)
+                top_5_strategies = filtered_strategies[:5]
 
-        if not filtered_strategies:
-            st.warning(f"No {market_condition} strategies found for {crypto}.")
-            return
+                for i, strategy in enumerate(top_5_strategies, 1):
+                    st.write(f"### Strategy #{i}")
+                    st.write(f"**Date Added:** {strategy['date_added']}")
+                    st.write(f"**Strategy:**\n{strategy['strategy']}")
+                    st.write("---")  # Add a separator between strategies
 
-        for i, strategy in enumerate(filtered_strategies, 1):
-            st.write(f"### Strategy #{i}")
-            st.write(f"**date_added:** {strategy['date_added']}")
-            st.write(f"**Strategy:**\n{strategy['strategy']}")
-            st.write("---")  # Add a separator between strategies
+        # Display the form for sharing strategies
+        with st.form("strategy_form"):
+            st.subheader(f"Share Your {market_condition} Strategy for {crypto}")
+            strategy = st.text_area(
+                "Describe your strategy:",
+                placeholder=f"In a {market_condition} market, stake your {crypto} tokens in native validators to earn staking rewards...",
+                height=150,
+            )
+            submitted = st.form_submit_button("Submit Strategy")
+
+            if submitted:
+                if not strategy:
+                    st.error("Please enter a valid strategy.")
+                else:
+                    # Add the new strategy to the list
+                    new_strategy = {
+                        "crypto": crypto,
+                        "market_condition": market_condition,
+                        "strategy": strategy,
+                        "date_added": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    self.community_strategies.append(new_strategy)
+
+                    # Save the updated strategies to the community file
+                    try:
+                        with open(self.community_file, "w") as file:
+                            json.dump(self.community_strategies, file, indent=4)
+                        st.success("Your strategy has been shared successfully!")
+                    except Exception as e:
+                        st.error(f"Failed to save strategy: {e}")
 
     #I'm currently using CoinMarketCap API to fetch the price of the cryptocurrency, but on the free tier. 
     #If the agent is successful, I'll switch to a paid tier and use CoinGecko API to fetch the price of the cryptocurrency.
@@ -684,23 +738,8 @@ class CryptoDeFiYieldFarmingAgent:
             # Notifications
             if vix_data['value'] > 30:
                 st.warning("High Volatility Detected! Consider reducing risk exposure.")
-
-            # Automatically display top 5 community strategies
-            st.subheader("Top 5 " + market_analysis['market_condition'] + " Strategies for " + crypto + " from the community")
+            
             self.view_community_strategies(crypto, market_analysis['market_condition'])
-
-            # Add a section for sharing strategies
-            st.subheader("Share Your " + market_analysis['market_condition'] + " Strategy for - " + crypto)
-            with st.form("strategy_form"):
-                strategy = st.text_area(
-                    "Enter your strategy:",
-                    placeholder="In a " + market_analysis['market_condition'] + " market, stake your " + crypto + " tokens in native validators to earn staking rewards..."
-                )
-                if st.form_submit_button("Share Strategy"):
-                    if crypto and market_analysis and "market_condition" in market_analysis:
-                        self.share_strategy(crypto, strategy, market_analysis['market_condition'])
-                    else:
-                        st.error("Please analyze a cryptocurrency first to share a strategy.")
 
     def explain_altcoin_season_index(self, altcoin_season_data):
         """
