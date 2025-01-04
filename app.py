@@ -140,11 +140,11 @@ class CryptoDeFiYieldFarmingAgent:
     def get_vix_analysis(self, vix_value):
         """Analyze VIX value."""
         if vix_value >= 30:
-            return "High Volatility (Market Fear)"
+            return "High Volatility (Market Fear in TradFi) - Crypto and TradFi are correlated nowadays."
         elif vix_value >= 20:
-            return "Moderate Volatility (Market Caution)"
+            return "Moderate Volatility (Market Caution in TradFi) - Crypto and TradFi are correlated nowadays."
         else:
-            return "Low Volatility (Market Complacency)"
+            return "Low Volatility (Market Complacency in TradFi) - Crypto and TradFi are correlated nowadays."
 
     def save_community_strategies(self):
         """Save community strategies to a JSON file."""
@@ -737,7 +737,7 @@ class CryptoDeFiYieldFarmingAgent:
 
             # Notifications
             if vix_data['value'] > 30:
-                st.warning("High Volatility Detected! Consider reducing risk exposure.")
+                st.warning("High Volatility Detected in TRADFI! Crypto and TradFi are correlated nowadays. Consider reducing risk exposure.")
             
             self.view_community_strategies(crypto, market_analysis['market_condition'])
 
