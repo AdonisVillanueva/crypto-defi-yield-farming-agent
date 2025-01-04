@@ -372,7 +372,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            Be concise and actionable. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
             """
         elif crypto == "Ethereum":
             prompt = f"""
@@ -400,7 +400,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.  Do not include deep dives if it's irrelevant, not helpful, and no content.
             """
         elif crypto == "Solana":
             prompt = f"""
@@ -421,7 +421,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Raydium or Orca for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
             """
         elif crypto == "Sui":
             prompt = f"""
@@ -442,7 +442,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like AlphaFi for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
             """
         else:
             prompt = f"""
@@ -465,7 +465,7 @@ class CryptoDeFiYieldFarmingAgent:
             - Lending stablecoins and borrowing depreciating assets.
             - Providing liquidity in stablecoin pairs.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
+            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
             """
         return self.call_deepseek_api(prompt)
 
@@ -617,6 +617,10 @@ class CryptoDeFiYieldFarmingAgent:
             altcoin_season_data = market_analysis['altcoin_season']
             if altcoin_season_data['value'] is not None:
                 st.write(f"**Altcoin Season Index:** {altcoin_season_data['value']} ({altcoin_season_data['season']})")
+                # Add a collapsible explanation
+                with st.expander("**Explaination and why it matters?**"):
+                    explanation = self.explain_altcoin_season_index(altcoin_season_data)
+                    st.write(explanation)
             else:
                 st.warning("Altcoin Season Index data is currently unavailable.")
 
@@ -697,6 +701,35 @@ class CryptoDeFiYieldFarmingAgent:
                         self.share_strategy(crypto, strategy, market_analysis['market_condition'])
                     else:
                         st.error("Please analyze a cryptocurrency first to share a strategy.")
+
+    def explain_altcoin_season_index(self, altcoin_season_data):
+        """
+        Generate an explanation of the Altcoin Season Index using DeepSeek API.
+        
+        Args:
+            altcoin_season_data (dict): The Altcoin Season Index data containing:
+                - "value": The index value (e.g., 51)
+                - "season": The season classification (e.g., "Bitcoin Season" or "Altcoin Season")
+        
+        Returns:
+            str: A concise explanation of the index and its implications.
+        """
+        if not altcoin_season_data:
+            return "No Altcoin Season Index data available."
+        
+        # Extract the index value and season classification
+        index_value = altcoin_season_data.get("value", 0)
+        season = altcoin_season_data.get("season", "Unknown Season")
+        
+        # Create the prompt for DeepSeek API
+        prompt = f"""
+        Explain {index_value} ({season}) and how the Altcoin Season Index works. 
+        Why is it useful? Be concise and actionable.
+        """
+        
+        # Call the DeepSeek API to generate the explanation
+        explanation = self.call_deepseek_api(prompt)
+        return explanation if explanation else "Failed to generate explanation."
 
 if __name__ == "__main__":
     agent = CryptoDeFiYieldFarmingAgent()
