@@ -372,7 +372,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise and actionable. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
+            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
             """
         elif crypto == "Ethereum":
             prompt = f"""
@@ -400,7 +400,7 @@ class CryptoDeFiYieldFarmingAgent:
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
             8. Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.  Do not include deep dives if it's irrelevant, not helpful, and no content.
+            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
             """
         elif crypto == "Solana":
             prompt = f"""
@@ -421,7 +421,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Raydium or Orca for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
+            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
             """
         elif crypto == "Sui":
             prompt = f"""
@@ -442,7 +442,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like AlphaFi for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
+            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
             """
         else:
             prompt = f"""
@@ -465,7 +465,7 @@ class CryptoDeFiYieldFarmingAgent:
             - Lending stablecoins and borrowing depreciating assets.
             - Providing liquidity in stablecoin pairs.
 
-            Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and no content.
+            Be concise, actionable, and provide pros and cons for each strategy. Include a link to a website or a youtube video with explaining the strategy. Do not include deep dives if it's irrelevant, not helpful, and missing content.
             """
         return self.call_deepseek_api(prompt)
 
