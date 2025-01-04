@@ -741,6 +741,10 @@ class CryptoDeFiYieldFarmingAgent:
             
             self.view_community_strategies(crypto, market_analysis['market_condition'])
 
+        # Add the link at the bottom of the menu panel
+        st.sidebar.markdown("---")  # Add a separator
+        st.sidebar.markdown("[Agent YieldDeFi now available on Virtuals Protocol!](https://app.virtuals.io/prototypes/0x76D73d17Bd821203EF6Df82FD156D08E675026C7)")
+
     def explain_altcoin_season_index(self, altcoin_season_data):
         """
         Generate an explanation of the Altcoin Season Index using DeepSeek API.
