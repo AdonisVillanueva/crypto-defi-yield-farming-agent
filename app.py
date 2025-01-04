@@ -19,6 +19,7 @@ class CryptoDeFiYieldFarmingAgent:
         self.community_strategies = self.load_community_strategies()
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")  # Get API key from .env
         self.deepseek_api_url = os.getenv("DEEPSEEK_API_URL")
+        self.coinmarketcap_api_key = os.getenv("COINMARKETCAP_API_KEY")  # Get API key from .env
 
     def load_community_strategies(self):
         """Load community strategies from a JSON file."""
@@ -496,6 +497,52 @@ class CryptoDeFiYieldFarmingAgent:
             st.write(f"**Strategy:**\n{strategy['strategy']}")
             st.write("---")  # Add a separator between strategies
 
+    #I'm currently using CoinMarketCap API to fetch the price of the cryptocurrency, but on the free tier. 
+    #If the agent is successful, I'll switch to a paid tier and use CoinGecko API to fetch the price of the cryptocurrency.
+    def get_crypto_price_coinmarketcap(self, crypto_symbol):
+        """
+        Fetch the current price of a cryptocurrency using CoinMarketCap API.
+        
+        Args:
+            crypto_symbol (str): The symbol of the cryptocurrency (e.g., BTC, ETH, SOL).
+        
+        Returns:
+            float: The current price in USD, or None if the price cannot be fetched.
+        """
+        try:
+            # CoinMarketCap API endpoint
+            url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+            
+            # API headers with your API key
+            headers = {
+                "Accepts": "application/json",
+                "X-CMC_PRO_API_KEY": self.coinmarketcap_api_key,  # Add this to your secrets.toml
+            }
+            
+            # Parameters for the API request
+            params = {
+                "symbol": crypto_symbol.upper(),  # Convert to uppercase for consistency
+                "convert": "USD"  # Convert price to USD
+            }
+            
+            # Make the API request
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()  # Raise an error for bad responses
+            
+            # Parse the response
+            data = response.json()
+            
+            # Extract the price
+            price = data["data"][crypto_symbol.upper()]["quote"]["USD"]["price"]
+            return price
+        
+        except requests.exceptions.RequestException as e:
+            st.error(f"Failed to fetch price for {crypto_symbol} from CoinMarketCap: {e}")
+            return None
+        except KeyError:
+            st.error(f"Invalid cryptocurrency symbol: {crypto_symbol}")
+            return None
+
     def run(self):
         """Run the Crypto DeFi & Yield Farming Agent."""
         # Create two columns for the header and image
@@ -541,7 +588,11 @@ class CryptoDeFiYieldFarmingAgent:
             if crypto_price is not None:  # Explicitly check for None
                 st.write(f"**Current Price:** ${crypto_price:,.2f}")  # Format with commas and 2 decimal places
             else:
-                st.warning("Could not fetch price data for this cryptocurrency.")
+                price = self.get_crypto_price_coinmarketcap(crypto) #If CoinGecko API is not working, use CoinMarketCap API as a fallback.
+                if price:
+                    st.write(f"Current price of BTC: ${price:,.2f}")
+                else:
+                    st.warning("Could not fetch price data for this cryptocurrency.")
 
             # Fetch and display Fear & Greed Index
             fear_greed_data = self.get_fear_and_greed_index()
