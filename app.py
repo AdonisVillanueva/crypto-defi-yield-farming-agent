@@ -359,6 +359,7 @@ class CryptoDeFiYieldFarmingAgent:
             4. Take the borrowed USDC and provide liquidity in a high APY pool like USDC/ETH concentrated pool in Aerodrome on Base L2. Make sure you have a healthy LTV ratio.
             5. The interest earned should cover the borrowed APR, and you also get the advantage of BTC's price appreciation in a bull market.
             6. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            Deep Dive: https://www.youtube.com/watch?v=ACOcZ6p9A8I
 
             If the market condition is bearish, include the following strategy:
             1. Convert BTC to USDC.
@@ -368,6 +369,7 @@ class CryptoDeFiYieldFarmingAgent:
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
             7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
             Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
@@ -377,10 +379,15 @@ class CryptoDeFiYieldFarmingAgent:
             Focus only on Ethereum and provide multiple strategies tailored to it.
             Do not include strategies for other cryptocurrencies or for market conditions other than {market_condition}.
 
-            If the market condition is bullish, include strategies such as:
-            - Staking ETH in Lido or Rocket Pool for staking rewards.
-            - Providing liquidity in Uniswap V3 or Curve pools.
-            - Leveraging ETH in Aave or Compound for borrowing and yield farming.
+            If the market condition is bullish, include the following strategy:
+            1. But ETH.
+            2. Lend ETH on Aave and use it as collateral.
+            3. Borrow a stable asset like USDC against this collateral on Aave (Base network).
+            4. Take the borrowed USDC and provide liquidity in a high APY pool like USDC/ETH concentrated pool in Aerodrome on Base L2. Make sure you have a healthy LTV ratio.
+            5. The interest earned should cover the borrowed APR, and you also get the advantage of BTC's price appreciation in a bull market.
+            6. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            Deep Dive: https://www.youtube.com/watch?v=ACOcZ6p9A8I
 
             If the market condition is bearish, include the following strategy:
             1. Convert ETH to USDC.
@@ -389,6 +396,8 @@ class CryptoDeFiYieldFarmingAgent:
             4. Convert the borrowed ETH back to USDC.
             5. Provide the USDC in liquidity pools on decentralized exchanges like Aerodrome for stable yields.
             6. The interest earned should cover the borrowing costs, and you benefit from the depreciating value of the borrowed asset.
+            7. You can automate this strategy by using a yield agrgegator like vfat.io to automate your yield farming.
+            Deep Dive: https://www.youtube.com/watch?v=Xas8a17Kx3o
 
             Be concise and actionable. Include a link to a website or a youtube video with deep dive explaining the strategy.
             """
