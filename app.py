@@ -4,29 +4,106 @@ import time
 import json
 import requests
 from dotenv import load_dotenv
+from sentiment import Sentiment
 import os
 from bs4 import BeautifulSoup
 import re
 # Load environment variables from .env
 load_dotenv()
 
+# Initialize Sentiment class
+@st.cache_resource  # Cache the Sentiment instance
+def get_sentiment_agent():
+    return Sentiment()
+
 class CryptoDeFiYieldFarmingAgent:
     #This is for the AI Model to evaluate the strategies
     STRATEGY_EVALUATION_CRITERIA = """
-    Be concise, actionable, provide pros and cons, and a rating for each strategy. 
+    Be concise, actionable, provide pros and cons, and a rating (1-10) of what you think for each strategy. 
     Include a link to a website or a YouTube video explaining the strategy. 
     Do not include deep dives if it's irrelevant, not helpful, or missing content.
     """
-    def __init__(self):
-        self.fear_greed_url = "https://api.alternative.me/fng/"
-        self.vix_url = "https://finance.yahoo.com/quote/%5EVIX/"
-        self.altcoin_season_url = "https://www.blockchaincenter.net/en/altcoin-season-index/"
+    def __init__(self):        
         self.community_file = "community/community_strategies.json"
         self.community_strategies = self.load_community_strategies()
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")  # Get API key from .env
         self.deepseek_api_url = os.getenv("DEEPSEEK_API_URL")
         self.coinmarketcap_api_key = os.getenv("COINMARKETCAP_API_KEY")  # Get API key from .env
-
+        # Initialize Sentiment agent
+        self.sentiment_agent = Sentiment()
+        #Crypto string mapping to slug
+        self.crypto_map = {
+            "BTC": "bitcoin",
+            "Ethereum": "ethereum",
+            "Solana": "solana",
+            "Sui": "sui",
+            "BNB": "binancecoin",
+            "XRP": "ripple",
+            "Cardano": "cardano",
+            "Dogecoin": "dogecoin",
+            "Avalanche": "avalanche-2",
+            "Polkadot": "polkadot",
+            "Polygon": "matic-network",
+            "Litecoin": "litecoin",
+            "Chainlink": "chainlink",
+            "Uniswap": "uniswap",
+            "Tron": "tron",
+            "Atom": "cosmos",
+            "Monero": "monero",
+            "Ethereum Classic": "ethereum-classic",
+            "Stellar": "stellar",
+            "Algorand": "algorand",
+            "Filecoin": "filecoin",
+            "Tezos": "tezos",
+            "Aave": "aave",
+            "Compound": "compound-governance-token",
+            "Shiba Inu": "shiba-inu",
+            "NEAR Protocol": "near",
+            "Fantom": "fantom",
+            "Optimism": "optimism",
+            "Arbitrum": "arbitrum",
+            "Aptos": "aptos",
+            "Mina": "mina-protocol",
+            "Flow": "flow",
+            "Hedera": "hedera-hashgraph",
+            "Klaytn": "klay-token",
+            "Zilliqa": "zilliqa",
+            "Theta": "theta-token",
+            "Axie Infinity": "axie-infinity",
+            "Decentraland": "decentraland",
+            "The Sandbox": "the-sandbox",
+            "Gala": "gala",
+            "Enjin Coin": "enjincoin",
+            "Chiliz": "chiliz",
+            "Immutable X": "immutable-x",
+            "Loopring": "loopring",
+            "Harmony": "harmony",
+            "Kusama": "kusama",
+            "Elrond": "elrond-erd-2",
+            "Celo": "celo",
+            "Cosmos": "cosmos",
+            "UMA": "uma",
+            "Band Protocol": "band-protocol",
+            "API3": "api3",
+            "DIA": "dia-data",
+            "Tellor": "tellor",
+            "NMR": "numeraire",
+            "Ocean Protocol": "ocean-protocol",
+            "Fetch.ai": "fetch-ai",
+            "SingularityNET": "singularitynet",
+            "Numeraire": "numeraire",
+            "Bancor": "bancor",
+            "Balancer": "balancer",
+            "Curve DAO Token": "curve-dao-token",
+            "SushiSwap": "sushi",
+            "1inch": "1inch",
+            "Yearn.finance": "yearn-finance",
+            "Maker": "maker",
+            "Compound": "compound-governance-token",
+            "Synthetix": "synthetix-network-token",
+            "Ren": "ren",
+            "Reserve Rights": "reserve-rights-token",
+        }
 
     def load_community_strategies(self):
         """Load community strategies from a JSON file."""
@@ -60,91 +137,6 @@ class CryptoDeFiYieldFarmingAgent:
                 json.dump(self.community_strategies, file, indent=4)
         except Exception as e:
             st.error(f"Error saving community strategies: {e}")
-
-    def get_fear_and_greed_index(self):
-        """Fetch Crypto Fear & Greed Index."""
-        try:
-            response = requests.get(self.fear_greed_url)
-            data = response.json()
-            if response.status_code == 200:
-                latest_data = data['data'][0]
-                return {
-                    'value': int(latest_data['value']),
-                    'classification': latest_data['value_classification']
-                }
-            return None
-        except Exception as e:
-            st.error(f"Error fetching Fear & Greed Index: {e}")
-            return None
-
-    def get_altcoin_season_index(self):
-        """Fetch the Altcoin Season Index from the webpage."""
-        try:
-            url = "https://www.blockchaincenter.net/en/altcoin-season-index/"
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-            }
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-
-            soup = BeautifulSoup(response.text, "html.parser")
-
-            # Find the Altcoin Season Index text
-            index_text = soup.find("button", class_="nav-link timeselect active").text.strip()  # Update the selector
-            match = re.search(r"\((\d+)\)", index_text)
-            if match:
-                value = int(match.group(1))
-                season_message = "Altcoin Season" if value > 75 else "Bitcoin Season"
-                return {
-                    "value": value,
-                    "season": season_message
-                }
-            else:
-                st.warning("Altcoin Season Index value not found on the page.")
-                return None
-        except Exception as e:
-            st.error(f"Error fetching Altcoin Season Index: {e}")
-            return None
-
-    def get_vix_index(self):
-        """Fetch CBOE Volatility Index (VIX) from Yahoo Finance."""
-        try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-            }
-            response = requests.get(self.vix_url, headers=headers)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Extract VIX value and remove commas
-            vix_value_str = soup.find('fin-streamer', {'data-field': 'regularMarketPrice'}).text
-            vix_value = float(vix_value_str.replace(',', ''))  # Remove commas and convert to float
-            
-            # Extract change and percent change
-            change_str = soup.find('fin-streamer', {'data-field': 'regularMarketChange'}).text
-            change = float(change_str.replace(',', ''))  # Remove commas and convert to float
-            
-            change_percent_str = soup.find('fin-streamer', {'data-field': 'regularMarketChangePercent'}).text.strip('()%')
-            change_percent = float(change_percent_str.replace(',', ''))  # Remove commas and convert to float
-            
-            return {
-                'value': vix_value,
-                'change': change,
-                'change_percent': change_percent,
-                'analysis': self.get_vix_analysis(vix_value)
-            }
-        except Exception as e:
-            st.error(f"Error fetching VIX Index: {e}")
-            return None
-
-    def get_vix_analysis(self, vix_value):
-        """Analyze VIX value."""
-        if vix_value >= 30:
-            return "High Volatility (Market Fear in TradFi) - Crypto and TradFi are correlated nowadays."
-        elif vix_value >= 20:
-            return "Moderate Volatility (Market Caution in TradFi) - Crypto and TradFi are correlated nowadays."
-        else:
-            return "Low Volatility (Market Complacency in TradFi) - Crypto and TradFi are correlated nowadays."
 
     def save_community_strategies(self):
         """Save community strategies to a JSON file."""
@@ -209,141 +201,31 @@ class CryptoDeFiYieldFarmingAgent:
         self.save_community_strategies()
         st.success("Your strategy has been shared with the community!")
 
-    def analyze_market(self):
-        """Analyze combined market sentiment."""
+    def get_crypto_price_coingecko(self, crypto: str) -> float:
+        """
+        Fetch the current price of a cryptocurrency using CoinGecko API.
+
+        Args:
+            crypto (str): The cryptocurrency name or symbol (e.g., "BTC", "Ethereum").
+
+        Returns:
+            float: The current price in USD, or None if the price cannot be fetched.
+        """
         try:
-            crypto_data = self.get_fear_and_greed_index()
-            vix_data = self.get_vix_index()
-            altcoin_season_data = self.get_altcoin_season_index()
-
-            if not crypto_data or not vix_data:
-                return {"error": "Failed to fetch market data"}
-
-            market_condition = "bullish" if crypto_data['value'] >= 55 else "bearish"
-            return {
-                'market_condition': market_condition,
-                'crypto': crypto_data,
-                'vix_data': vix_data,
-                'altcoin_season': altcoin_season_data
-            }
-        except Exception as e:
-            return {"error": str(e)}
-
-    def get_crypto_price(self, crypto):
-        """Fetch the current price of a cryptocurrency using CoinGecko API."""
-        try:
-            # Map crypto names to CoinGecko IDs
-            crypto_map = {
-                "BTC": "bitcoin",
-                "Ethereum": "ethereum",
-                "Solana": "solana",
-                "Sui": "sui",
-                "BNB": "binancecoin",
-                "XRP": "ripple",
-                "Cardano": "cardano",
-                "Dogecoin": "dogecoin",
-                "Avalanche": "avalanche-2",
-                "Polkadot": "polkadot",
-                "Polygon": "matic-network",
-                "Litecoin": "litecoin",
-                "Chainlink": "chainlink",
-                "Uniswap": "uniswap",
-                "Tron": "tron",
-                "Atom": "cosmos",
-                "Monero": "monero",
-                "Ethereum Classic": "ethereum-classic",
-                "Stellar": "stellar",
-                "Algorand": "algorand",
-                "Filecoin": "filecoin",
-                "Tezos": "tezos",
-                "Aave": "aave",
-                "Compound": "compound-governance-token",
-                "Shiba Inu": "shiba-inu",
-                "NEAR Protocol": "near",
-                "Fantom": "fantom",
-                "Optimism": "optimism",
-                "Arbitrum": "arbitrum",
-                "Aptos": "aptos",
-                "Mina": "mina-protocol",
-                "Flow": "flow",
-                "Hedera": "hedera-hashgraph",
-                "Klaytn": "klay-token",
-                "Zilliqa": "zilliqa",
-                "Theta": "theta-token",
-                "Axie Infinity": "axie-infinity",
-                "Decentraland": "decentraland",
-                "The Sandbox": "the-sandbox",
-                "Gala": "gala",
-                "Enjin Coin": "enjincoin",
-                "Chiliz": "chiliz",
-                "Immutable X": "immutable-x",
-                "Loopring": "loopring",
-                "Harmony": "harmony",
-                "Kusama": "kusama",
-                "Elrond": "elrond-erd-2",
-                "Celo": "celo",
-                "Cosmos": "cosmos",
-                "UMA": "uma",
-                "Band Protocol": "band-protocol",
-                "API3": "api3",
-                "DIA": "dia-data",
-                "Tellor": "tellor",
-                "NMR": "numeraire",
-                "Ocean Protocol": "ocean-protocol",
-                "Fetch.ai": "fetch-ai",
-                "SingularityNET": "singularitynet",
-                "Numeraire": "numeraire",
-                "Bancor": "bancor",
-                "Balancer": "balancer",
-                "Curve DAO Token": "curve-dao-token",
-                "SushiSwap": "sushi",
-                "1inch": "1inch",
-                "Yearn.finance": "yearn-finance",
-                "Maker": "maker",
-                "Compound": "compound-governance-token",
-                "Synthetix": "synthetix-network-token",
-                "Ren": "ren",
-                "Reserve Rights": "reserve-rights-token",
-                "UMA": "uma",
-                "Band Protocol": "band-protocol",
-                "API3": "api3",
-                "DIA": "dia-data",
-                "Tellor": "tellor",
-                "NMR": "numeraire",
-                "Ocean Protocol": "ocean-protocol",
-                "Fetch.ai": "fetch-ai",
-                "SingularityNET": "singularitynet",
-                "Numeraire": "numeraire",
-                "Bancor": "bancor",
-                "Balancer": "balancer",
-                "Curve DAO Token": "curve-dao-token",
-                "SushiSwap": "sushi",
-                "1inch": "1inch",
-                "Yearn.finance": "yearn-finance",
-                "Maker": "maker",
-                "Compound": "compound-governance-token",
-                "Synthetix": "synthetix-network-token",
-                "Ren": "ren",
-                "Reserve Rights": "reserve-rights-token"
-            }
-
-            # Convert crypto_map keys to lowercase for case-insensitive matching
-            crypto_map_lower = {k.lower(): v for k, v in crypto_map.items()}
-
-            # Get the CoinGecko ID for the crypto (case-insensitive)
-            crypto_id = crypto_map_lower.get(crypto.lower(), crypto.lower())
+            # Generate the slug for the cryptocurrency
+            crypto_slug = self.generate_crypto_slug(crypto)
 
             # Fetch price from CoinGecko API
-            url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_id}&vs_currencies=usd"
+            url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_slug}&vs_currencies=usd"
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses
 
             # Extract and return the price
             price_data = response.json()
-            if crypto_id in price_data and "usd" in price_data[crypto_id]:
-                return price_data[crypto_id]["usd"]
+            if crypto_slug in price_data and "usd" in price_data[crypto_slug]:
+                return price_data[crypto_slug]["usd"]
             else:
-                st.error(f"Price data not found for {crypto}")
+                st.error(f"Price data not found for {crypto} (slug: {crypto_slug})")
                 return None
         except Exception as e:
             st.error(f"Failed to fetch price for {crypto}: {e}")
@@ -596,7 +478,23 @@ class CryptoDeFiYieldFarmingAgent:
         except KeyError:
             st.error(f"Invalid cryptocurrency symbol: {crypto_symbol}")
             return None
+        
+    def generate_crypto_slug(self, crypto: str) -> str:
+        """
+        Generate a slug for a cryptocurrency string using the crypto_map.
 
+        Args:
+            crypto (str): The cryptocurrency name or symbol (e.g., "BTC", "Ethereum").
+
+        Returns:
+            str: The slug (e.g., "bitcoin", "ethereum").
+        """
+        # Convert crypto_map keys to lowercase for case-insensitive matching
+        crypto_map_lower = {k.lower(): v for k, v in self.crypto_map.items()}
+
+        # Get the slug from the crypto_map (case-insensitive)
+        return crypto_map_lower.get(crypto.lower(), crypto.lower().replace(" ", "-"))
+    
     def run(self):
         """Run the Crypto DeFi & Yield Farming Agent."""
         # Create two columns for the header and image
@@ -629,16 +527,15 @@ class CryptoDeFiYieldFarmingAgent:
             if not crypto:
                 st.error("Please enter a valid cryptocurrency.")
                 return
-
-        # Initialize market_analysis as None
-        market_analysis = None
+            
+        crypto = self.generate_crypto_slug(crypto)
 
         # Analyze Button
         if st.sidebar.button("Analyze"):
             st.subheader(f"Analysis for {crypto}")
-
+            
             # Fetch and display crypto price
-            crypto_price = self.get_crypto_price(crypto)
+            crypto_price = self.get_crypto_price_coingecko(crypto)
             if crypto_price is not None:  # Explicitly check for None
                 st.write(f"**Current Price:** ${crypto_price:,.2f}")  # Format with commas and 2 decimal places
             else:
@@ -646,37 +543,68 @@ class CryptoDeFiYieldFarmingAgent:
                 if price:
                     st.write(f"Current price of BTC: ${price:,.2f}")
                 else:
-                    st.warning("Could not fetch price data for this cryptocurrency.")
+                    st.warning("Could not fetch price data for this cryptocurrency.")   
 
-            # Fetch and display Fear & Greed Index
-            fear_greed_data = self.get_fear_and_greed_index()
-            if fear_greed_data:
-                st.markdown(
-                    f"**Fear & Greed Index:** {fear_greed_data['value']} ({fear_greed_data['classification']}) "
-                    f"<span style='color: gray; font-size: 0.9em;'>(Measures market sentiment from 0 = Extreme Fear to 100 = Extreme Greed)</span>",
-                    unsafe_allow_html=True
-                )
-
-            # Analyze market and display recommendation
-            market_analysis = self.analyze_market()          
-
-            st.write(f"**Market Condition:** {market_analysis['market_condition']}")
-
-            # Display VIX data
-            vix_data = market_analysis['vix_data']
-            st.write(f"**VIX Index:** {vix_data['value']} ({vix_data['analysis']})")
-            st.write(f"**Change:** {vix_data['change']} ({vix_data['change_percent']}%)")
-
-            # Display Altcoin Season Index data
-            altcoin_season_data = market_analysis['altcoin_season']
-            if altcoin_season_data['value'] is not None:
-                st.write(f"**Altcoin Season Index:** {altcoin_season_data['value']} ({altcoin_season_data['season']})")
-                # Add a collapsible explanation
-                with st.expander("**Explaination and why it matters?**"):
-                    explanation = self.explain_altcoin_season_index(altcoin_season_data)
-                    st.write(explanation)
+            #Santiment Data
+        # Fetch Santiment data with fallback to Ethereum
+            st.markdown("### === Santiment Data ===")  
+            santiment = self.sentiment_agent.get_santiment_data(crypto_slug=crypto, metric="daily_active_addresses")
+            if santiment is not None:
+                st.write("Source: https://santiment.net/")
+                st.write(f"Daily Active Addresses: {santiment} for {crypto}")
             else:
-                st.warning("Altcoin Season Index data is currently unavailable.")
+                # Fallback to Ethereum if no data is found for the provided crypto_slug
+                st.warning(f"No data found for {crypto} on Santiment.")
+                santiment = self.sentiment_agent.get_santiment_data(crypto_slug="ethereum", metric="daily_active_addresses")
+                if santiment is not None:
+                    st.write("Source: https://santiment.net/")
+                else:
+                    st.warning("Failed to fetch Santiment data even for Ethereum fallback.")
+
+            #Altcoin Season Index
+            st.markdown("### === Altcoin Season Index ===")            
+            altcoin_season_index = self.sentiment_agent.get_altcoin_season_index()
+            if altcoin_season_index:
+                st.write(f"Altcoin Season Index: {altcoin_season_index['value']}")
+                st.write(f"Season: {altcoin_season_index['season']}")
+            else:
+                st.warning("Failed to fetch Altcoin Season Index data.")
+
+            with st.expander("**Explanation and why it matters?**"):
+                explanation = self.explain_altcoin_season_index(altcoin_season_index)
+                st.write(explanation)
+
+            #TradFi Sentiment (VIX) 
+            st.markdown("### === TradFi (VIX) ===")
+            vix = self.sentiment_agent.get_tradfi_sentiment()
+            if vix:
+                st.write("TradFi Sentiment Data:")
+                st.write(f"VIX Value: {vix['value']}")
+                st.write(f"VIX Change: {vix['change']}")
+                st.write(f"VIX Percent Change: {vix['change_percent']}")
+                st.write(f"Analysis: {vix['analysis']}")
+                st.write(f"Source: {vix['source']}")
+            else:
+                st.warning("Failed to fetch TradFi Sentiment data.")
+
+            #Fear & Greed Index 
+            st.markdown("### === Fear & Greed Index ===")
+            fear_and_greed_index = self.sentiment_agent.get_fear_and_greed_index()
+            if fear_and_greed_index:
+                st.write("Fear & Greed Index Data:")
+                st.write(f"Value: {fear_and_greed_index['value']}")
+                st.write(f"Classification: {fear_and_greed_index['classification']}")
+                st.write(f"Date Fetched: {fear_and_greed_index['date_fetched']}")
+            else:
+                st.warning("Failed to fetch Fear & Greed Index data.")
+
+            #Reddit Sentiment in the crypto subreddit
+            st.markdown("### === Reddit Sentiment ===")
+            reddit_sentiment = self.sentiment_agent.get_reddit_sentiment(subreddit="cryptocurrency", limit=5)
+            if reddit_sentiment:
+                st.write(f"Average Sentiment: {reddit_sentiment['average_sentiment']} (A positive number is bullish and negative is bearish)" )
+            else:
+                st.warning("Failed to fetch Reddit sentiment.")
 
             # Generate recommendation with progress bar
             progress_bar = st.progress(0)
@@ -691,14 +619,16 @@ class CryptoDeFiYieldFarmingAgent:
                     progress_bar.progress(percent_complete + 1)
                 processing_message.empty()  # Remove "Processing recommendation..." message
 
+            # Fetch market condition for the crypto
+            market_condition = self.sentiment_agent.determine_market_condition(crypto)
             # Generate recommendation
-            recommendation = self.get_recommendation(crypto, market_analysis['market_condition'])
+            recommendation = self.get_recommendation(crypto, market_condition)
 
             # Update progress bar after recommendation is done
             update_progress(progress_bar, processing_message)
 
             # Display recommendation
-            st.write("**My Recommendation for what to do with your " + crypto + " in a " + market_analysis['market_condition'] + " market:**")
+            st.write("**My Recommendation for what to do with your " + crypto + " in a " + market_condition + " market:**")
             st.markdown(recommendation.replace("\n", "  \n"))
 
             # Display risk score with red line and indicator
@@ -735,11 +665,7 @@ class CryptoDeFiYieldFarmingAgent:
                 risk_explanation = self.explain_risk_score(crypto, risk_score)
                 st.write(risk_explanation)
 
-            # Notifications
-            if vix_data['value'] > 30:
-                st.warning("High Volatility Detected in TRADFI! Crypto and TradFi are correlated nowadays. Consider reducing risk exposure.")
-            
-            self.view_community_strategies(crypto, market_analysis['market_condition'])
+            self.view_community_strategies(crypto, market_condition)
 
         # Add the link at the bottom of the menu panel
         st.sidebar.markdown("---")  # Add a separator
