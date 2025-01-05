@@ -5,3 +5,4 @@ numpy==1.26.2
 python-dotenv==1.0.0
 beautifulsoup4==4.12.2
 praw==7.7.1
+textblob==0.17.1
