@@ -2,3 +2,5 @@
 .env 
 .venv/
 .streamlit/secrets.toml
+fresh-clone/
+__pycache__/
