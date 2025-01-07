@@ -1,168 +1,168 @@
 [
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "In a bullish market, consider wrapping BTC to wBTC and providing liquidity in a wBTC/ETH pool on Uniswap V3 for high APY returns.",
         "market_condition": "bullish",
         "date_added": "2023-10-01 14:30:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Stake ETH in Lido for staking rewards and use stETH as collateral on Aave to borrow stablecoins for additional yield farming.",
         "market_condition": "neutral",
         "date_added": "2023-10-02 09:15:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Provide liquidity in the SOL/USDC pool on Raydium for high APY returns, especially during periods of low volatility.",
         "market_condition": "bearish",
         "date_added": "2023-10-03 16:45:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "In a bearish market, consider holding BTC in a cold wallet and using it as collateral to borrow stablecoins for short-term liquidity.",
         "market_condition": "bearish",
         "date_added": "2023-10-04 11:20:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "In a bullish market, stake ETH in Rocket Pool for decentralized staking rewards and participate in governance.",
         "market_condition": "bullish",
         "date_added": "2023-10-05 08:10:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "In a neutral market, consider yield farming with SOL in the Orca DEX by providing liquidity to SOL/USDT pools.",
         "market_condition": "neutral",
         "date_added": "2023-10-06 13:55:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "In a neutral market, consider using BTC to earn interest on platforms like Celsius or BlockFi.",
         "market_condition": "neutral",
         "date_added": "2023-10-07 17:30:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "In a bearish market, consider staking ETH in a decentralized staking pool like StakeWise to earn passive income.",
         "market_condition": "bearish",
         "date_added": "2023-10-08 10:05:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "Wrap BTC into wBTC using the Wrapped Bitcoin protocol and provide liquidity in a wBTC/ETH pool on Uniswap V3 for high APY returns.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 12:00:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "Deposit BTC into BadgerDAO's Sett vaults to earn yield through automated DeFi strategies like lending and liquidity mining.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 12:05:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "Use Ren Protocol to mint renBTC and provide liquidity in a renBTC/DAI pool on Curve Finance for stable yields.",
         "market_condition": "bearish",
         "date_added": "2023-10-10 12:10:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "Lend BTC on Aave or Compound to earn interest while maintaining exposure to potential price appreciation.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 12:15:00"
     },
     {
-        "crypto": "BTC",
+        "crypto": "bitcoin",
         "strategy": "Use BTC as collateral to borrow stablecoins on MakerDAO and farm yields in stablecoin pools on platforms like Yearn Finance.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 12:20:00"
     },
     {
-        "crypto": "Sui",
+        "crypto": "sui",
         "strategy": "Stake SUI tokens in the Sui staking pool to earn staking rewards and participate in network governance.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 12:25:00"
     },
     {
-        "crypto": "Sui",
+        "crypto": "sui",
         "strategy": "Provide liquidity in the SUI/USDC pool on a decentralized exchange like Cetus or Turbos Finance to earn trading fees and rewards.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 12:30:00"
     },
     {
-        "crypto": "Sui",
+        "crypto": "sui",
         "strategy": "Participate in Sui's DeFi ecosystem by lending SUI on platforms like Navi Protocol to earn interest.",
         "market_condition": "bearish",
         "date_added": "2023-10-10 12:35:00"
     },
     {
-        "crypto": "Sui",
+        "crypto": "sui",
         "strategy": "Use SUI as collateral to borrow stablecoins on Sui-based lending platforms and farm yields in stablecoin pools.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 12:40:00"
     },
     {
-        "crypto": "Sui",
+        "crypto": "sui",
         "strategy": "Participate in Sui's liquidity mining programs by providing liquidity to SUI-based pools on decentralized exchanges.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 12:45:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Stake SOL tokens in a Solana validator to earn staking rewards and support network security.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 12:50:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Provide liquidity in the SOL/USDC pool on Raydium to earn trading fees and RAY token rewards.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 12:55:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Deposit SOL into Marinade Finance to earn staking rewards and receive mSOL for use in DeFi protocols.",
         "market_condition": "bearish",
         "date_added": "2023-10-10 13:00:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Use SOL as collateral to borrow stablecoins on Solend and farm yields in stablecoin pools on Orca DEX.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 13:05:00"
     },
     {
-        "crypto": "Solana",
+        "crypto": "solana",
         "strategy": "Participate in Solana's DeFi ecosystem by lending SOL on platforms like Port Finance to earn interest.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 13:10:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Stake ETH in Lido Finance to earn staking rewards and receive stETH for use in DeFi protocols.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 13:15:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Provide liquidity in the ETH/USDC pool on Uniswap V3 to earn trading fees and UNI token rewards.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 13:20:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Deposit ETH into Aave to earn interest and borrow stablecoins for additional yield farming opportunities.",
         "market_condition": "bearish",
         "date_added": "2023-10-10 13:25:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Use ETH as collateral to mint DAI on MakerDAO and farm yields in DAI-based pools on Yearn Finance.",
         "market_condition": "neutral",
         "date_added": "2023-10-10 13:30:00"
     },
     {
-        "crypto": "Ethereum",
+        "crypto": "ethereum",
         "strategy": "Participate in Ethereum's DeFi ecosystem by lending ETH on platforms like Compound to earn interest.",
         "market_condition": "bullish",
         "date_added": "2023-10-10 13:35:00"
